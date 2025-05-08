@@ -263,29 +263,144 @@
     <script src="https://cdn.jsdelivr.net/npm/bs5-lightbox@1.8.3/dist/index.bundle.min.js"></script>
 
     <!-- scroll -->
-    <script>
-      function bukaUndangan() {
-        const cover = document.getElementById("cover");
-        const undangan = document.getElementById("undangan");
+     <script> 
+      // Fungsi untuk mendeteksi browser dan versinya
+function detectBrowser() {
+  const userAgent = navigator.userAgent;
+  let browserName = "Unknown";
+  let browserVersion = "Unknown";
 
-        // Sembunyikan cover
+  // Deteksi browser
+  if (userAgent.match(/chrome|chromium|crios/i)) {
+    browserName = "Chrome";
+  } else if (userAgent.match(/firefox|fxios/i)) {
+    browserName = "Firefox";
+  } else if (userAgent.match(/safari/i) && !userAgent.match(/chrome|chromium|crios/i)) {
+    browserName = "Safari";
+  } else if (userAgent.match(/edg/i)) {
+    browserName = "Edge";
+  } else if (userAgent.match(/opr\//i)) {
+    browserName = "Opera";
+  } else if (userAgent.match(/msie|trident/i)) {
+    browserName = "Internet Explorer";
+  }
+
+  // Coba dapatkan versi browser (cara sederhana)
+  const versionMatch = userAgent.match(/(chrome|firefox|safari|opr|edg|msie|rv)[\s\/: ](\d+(\.\d+)?)/i);
+  if (versionMatch && versionMatch[2]) {
+    browserVersion = versionMatch[2];
+  }
+
+  return { name: browserName, version: browserVersion };
+}
+
+// Fungsi untuk membuka undangan dengan fallback
+function bukaUndangan() {
+  try {
+    const cover = document.getElementById("cover");
+    const undangan = document.getElementById("undangan");
+    
+    if (!cover || !undangan) {
+      console.error("Element cover atau undangan tidak ditemukan");
+      return;
+    }
+
+    // Sembunyikan cover dengan berbagai metode untuk kompatibilitas
+    cover.classList.add("hidden");
+    cover.style.display = "none";
+    cover.style.visibility = "hidden";
+
+    // Tampilkan undangan dengan berbagai metode
+    undangan.style.display = "block";
+    undangan.style.visibility = "visible";
+    undangan.style.opacity = "1";
+    
+    // Scroll ke undangan dengan fallback untuk browser yang tidak mendukung scrollIntoView
+    if (undangan.scrollIntoView) {
+      undangan.scrollIntoView({ behavior: "smooth" });
+    } else {
+      // Fallback untuk browser lama
+      const yOffset = undangan.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: yOffset,
+        behavior: "smooth"
+      });
+    }
+
+    // Simpan status di berbagai storage untuk redundansi
+    try {
+      sessionStorage.setItem("undanganDibuka", "true");
+    } catch (e) {
+      // Fallback jika sessionStorage tidak tersedia
+      document.cookie = "undanganDibuka=true; path=/";
+    }
+    
+    // Broadcast event bahwa undangan telah dibuka
+    const event = new Event("undanganDibuka");
+    document.dispatchEvent(event);
+  } catch (error) {
+    console.error("Error saat membuka undangan:", error);
+    // Fallback jika terjadi error
+    const coverElement = document.getElementById("cover");
+    const undanganElement = document.getElementById("undangan");
+    
+    if (coverElement) coverElement.style.display = "none";
+    if (undanganElement) undanganElement.style.display = "block";
+  }
+}
+
+// Handler ketika halaman dimuat
+window.onload = function() {
+  try {
+    const browser = detectBrowser();
+    console.log("Browser terdeteksi:", browser.name, browser.version);
+    
+    let isUndanganDibuka = false;
+    
+    // Cek di berbagai storage
+    if (sessionStorage && sessionStorage.getItem("undanganDibuka")) {
+      isUndanganDibuka = true;
+      sessionStorage.removeItem("undanganDibuka");
+    } else if (document.cookie.indexOf("undanganDibuka=true") !== -1) {
+      isUndanganDibuka = true;
+      // Hapus cookie
+      document.cookie = "undanganDibuka=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
+    
+    if (isUndanganDibuka) {
+      const cover = document.getElementById("cover");
+      const undangan = document.getElementById("undangan");
+      
+      if (cover) {
         cover.classList.add("hidden");
-
-        // Tampilkan undangan
-        undangan.style.display = "block";
-        undangan.scrollIntoView({ behavior: "smooth" });
-
-        sessionStorage.setItem("undanganDibuka", "true");
+        cover.style.display = "none";
       }
-
-      window.onload = function () {
-        if (sessionStorage.getItem("undanganDibuka")) {
-          document.getElementById("cover").classList.add("hidden");
-          document.getElementById("undangan").style.display = "block";
-          sessionStorage.removeItem("undanganDibuka");
-        }
-      };
-    </script>
+      
+      if (undangan) {
+        undangan.style.display = "block";
+        undangan.style.visibility = "visible";
+      }
+    }
+    
+    // Tambahkan event listener untuk tombol buka undangan
+    const tombolUndangan = document.querySelector(".tombol-buka");
+    if (tombolUndangan) {
+      // Gunakan beberapa metode event untuk kompatibilitas maksimum
+      if (tombolUndangan.addEventListener) {
+        tombolUndangan.addEventListener("click", bukaUndangan, false);
+      } else if (tombolUndangan.attachEvent) {
+        // Untuk IE < 9
+        tombolUndangan.attachEvent("onclick", bukaUndangan);
+      } else {
+        tombolUndangan.onclick = bukaUndangan;
+      }
+    }
+  } catch (error) {
+    console.error("Error saat inisialisasi:", error);
+  }
+}
+     
+     </script>
 
     <!-- amplop -->
     <script>

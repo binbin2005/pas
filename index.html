@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>undangan</title>
     <link rel="stylesheet" href="./style.css" />
-    <meta http-equiv="refresh" content="0;url=https://binbin2005.github.io/pas/">
 
     <!-- link normalize buat tidak berantakan-->
     <link
@@ -28,7 +27,6 @@
     />
   </head>
   <body>
-    <p>Jika tidak diarahkan, klik <a href="https://binbin2005.github.io/pas/">di sini</a>.</p>
     <div class="cover" id="cover">
       <img src="./img/cover.jpg" alt="Foto Undangan" />
       <div class="text-content">
@@ -248,28 +246,49 @@
 
     <!-- scroll -->
     <script>
-      function bukaUndangan() {
-        const cover = document.getElementById("cover");
-        const undangan = document.getElementById("undangan");
+  function bukaUndangan() {
+    var cover = document.getElementById("cover");
+    var undangan = document.getElementById("undangan");
 
-        // Sembunyikan cover
-        cover.classList.add("hidden");
+    if (cover && undangan) {
+      // Sembunyikan cover
+      cover.className += " hidden"; // tambah class dengan cara manual agar aman di browser lama
 
-        // Tampilkan undangan
-        undangan.style.display = "block";
-        undangan.scrollIntoView({ behavior: "smooth" });
+      // Tampilkan undangan
+      undangan.style.display = "block";
 
+      // Scroll ke undangan (tanpa smooth agar lebih kompatibel)
+      undangan.scrollIntoView();
+
+      // Simpan status
+      try {
         sessionStorage.setItem("undanganDibuka", "true");
+      } catch (e) {
+        // Jika sessionStorage tidak didukung
+        console.log("sessionStorage tidak tersedia");
       }
+    }
+  }
 
-      window.onload = function () {
-        if (sessionStorage.getItem("undanganDibuka")) {
-          document.getElementById("cover").classList.add("hidden");
-          document.getElementById("undangan").style.display = "block";
-          sessionStorage.removeItem("undanganDibuka");
+  window.onload = function () {
+    try {
+      if (sessionStorage.getItem("undanganDibuka")) {
+        var cover = document.getElementById("cover");
+        var undangan = document.getElementById("undangan");
+
+        if (cover && undangan) {
+          cover.className += " hidden";
+          undangan.style.display = "block";
         }
-      };
-    </script>
+
+        sessionStorage.removeItem("undanganDibuka");
+      }
+    } catch (e) {
+      console.log("sessionStorage tidak tersedia");
+    }
+  };
+</script>
+
 
     <!-- amplop -->
     <script>
@@ -369,20 +388,6 @@
         }
       };
     </script>
-
-    <script>
-  if (!window.fetch || !CSS.supports("display", "flex")) {
-    const warning = document.createElement("div");
-    warning.innerHTML = `
-      <p style="margin: 0 0 10px 0;">Browser Anda mungkin tidak mendukung undangan ini dengan baik.</p>
-      <strong>Silakan buka undangan ini menggunakan aplikasi Google Chrome.</strong><br>
-      <p style="margin-top: 10px;">Salin dan tempel link berikut di Chrome:<br>
-      <span style="word-break: break-all; font-size: 0.9em;">https://binbin2005.github.io/pas/</span></p>
-    `;
-    warning.style.cssText = "background: #fff4e5; color: #b35b00; padding: 15px; text-align: center; font-family: sans-serif; font-size: 14px; border: 1px solid #ffcc99; border-radius: 8px; margin: 10px;";
-    document.body.prepend(warning);
-  }
-</script>
 
   </body>
 </html>

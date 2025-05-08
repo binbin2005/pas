@@ -246,29 +246,33 @@
 
     <!-- scroll -->
     <script>
-      function bukaUndangan() {
-  // Dapatkan elemen
-  var cover = document.getElementById("cover");
-  var undangan = document.getElementById("undangan");
-  
-  // Sembunyikan cover
-  if (cover) cover.style.display = "none";
-  
-  // Tampilkan undangan
-  if (undangan) undangan.style.display = "block";
-  
-  // Scroll dengan timeout sederhana
-  setTimeout(function() {
-    // Beberapa metode scroll dasar
-    document.body.scrollTop = 0;
-    document.documentElement.scrollTop = 0;
-    try { undangan.scrollIntoView(); } catch(e) {}
-  }, 100);
-  
-  // Simpan di cookie
-  document.cookie = "undanganDibuka=true; path=/";
-  return false;
-}
+        // Fungsi untuk melakukan scroll smooth ke elemen dengan id "undangan"
+        function bukaUndangan() {
+            const undanganElement = document.getElementById('undangan');
+            
+            if (undanganElement) {
+                // Cek dukungan untuk scrollBehavior
+                if ('scrollBehavior' in document.documentElement.style) {
+                    // Browser modern dengan dukungan smooth scroll
+                    undanganElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                } else {
+                    // Fallback untuk browser lama
+                    const elementPosition = undanganElement.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset;
+                    
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+            
+            // Mencegah default action dari link
+            return false;
+        }
     </script>
     <!-- amplop -->
     <script>

@@ -246,252 +246,30 @@
 
     <!-- scroll -->
     <script>
-      /**
- * Script Undangan Digital yang Kompatibel dengan Semua Browser
- * Termasuk browser bawaan OPPO yang memiliki keterbatasan
- */
-
-// Polyfill untuk Element.classList (untuk browser lama)
-if (!("classList" in document.documentElement)) {
-  Object.defineProperty(HTMLElement.prototype, 'classList', {
-    get: function() {
-      var self = this;
-      function update(fn) {
-        return function(value) {
-          var classes = self.className.split(/\s+/);
-          var index = classes.indexOf(value);
-          fn(classes, index, value);
-          self.className = classes.join(" ");
-        };
-      }
-
-      return {
-        add: update(function(classes, index, value) {
-          if (index === -1) {
-            classes.push(value);
-          }
-        }),
-        remove: update(function(classes, index) {
-          if (index !== -1) {
-            classes.splice(index, 1);
-          }
-        }),
-        toggle: update(function(classes, index, value) {
-          if (index === -1) {
-            classes.push(value);
-          } else {
-            classes.splice(index, 1);
-          }
-        }),
-        contains: function(value) {
-          return self.className.split(/\s+/).indexOf(value) !== -1;
-        }
-      };
-    }
-  });
-}
-
-// Fungsi untuk scroll dengan smooth behavior untuk browser yang tidak mendukung
-function smoothScrollTo(element) {
-  if (!element) return;
+      function bukaUndangan() {
+  // Dapatkan elemen
+  var cover = document.getElementById("cover");
+  var undangan = document.getElementById("undangan");
   
-  // Periksa apakah smooth scrolling didukung
-  var supportsScrollBehavior = 'scrollBehavior' in document.documentElement.style;
+  // Sembunyikan cover
+  if (cover) cover.style.display = "none";
   
-  if (supportsScrollBehavior) {
-    element.scrollIntoView({ behavior: "smooth" });
-  } else {
-    // Implementasi manual untuk smooth scrolling
-    var startY = window.pageYOffset;
-    var targetY = element.getBoundingClientRect().top + startY;
-    var duration = 500; // ms
-    var startTime = null;
-    
-    function scrollStep(timestamp) {
-      if (!startTime) startTime = timestamp;
-      var progress = timestamp - startTime;
-      var percentage = Math.min(progress / duration, 1);
-      
-      // Fungsi easing untuk animasi lebih halus
-      var easeInOutQuad = function(t) {
-        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-      };
-      
-      window.scrollTo(0, startY + (targetY - startY) * easeInOutQuad(percentage));
-      
-      if (progress < duration) {
-        window.requestAnimationFrame(scrollStep);
-      }
-    }
-    
-    // Fallback untuk requestAnimationFrame jika tidak didukung
-    var requestAnimFrame = window.requestAnimationFrame ||
-      window.webkitRequestAnimationFrame ||
-      window.mozRequestAnimationFrame ||
-      function(callback) { window.setTimeout(callback, 1000/60); };
-    
-    requestAnimFrame(scrollStep);
-  }
-}
-
-// Fungsi untuk mengecek dukungan Storage API
-function storageAvailable(type) {
-  try {
-    var storage = window[type],
-        x = '__storage_test__';
-    storage.setItem(x, x);
-    storage.removeItem(x);
-    return true;
-  }
-  catch(e) {
-    return false;
-  }
-}
-
-// Fungsi untuk menyimpan data jika sessionStorage tidak tersedia
-function setData(key, value) {
-  if (storageAvailable('sessionStorage')) {
-    sessionStorage.setItem(key, value);
-  } else {
-    // Fallback menggunakan cookies
-    document.cookie = key + "=" + value + "; path=/";
-  }
-}
-
-// Fungsi untuk mengambil data
-function getData(key) {
-  if (storageAvailable('sessionStorage')) {
-    return sessionStorage.getItem(key);
-  } else {
-    // Fallback menggunakan cookies
-    var name = key + "=";
-    var decodedCookie = decodeURIComponent(document.cookie);
-    var ca = decodedCookie.split(';');
-    for(var i = 0; i < ca.length; i++) {
-      var c = ca[i];
-      while (c.charAt(0) == ' ') {
-        c = c.substring(1);
-      }
-      if (c.indexOf(name) == 0) {
-        return c.substring(name.length, c.length);
-      }
-    }
-    return null;
-  }
-}
-
-// Fungsi untuk menghapus data
-function removeData(key) {
-  if (storageAvailable('sessionStorage')) {
-    sessionStorage.removeItem(key);
-  } else {
-    // Hapus cookie dengan mengatur expired date
-    document.cookie = key + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-  }
-}
-
-// Fungsi utama untuk membuka undangan
-function bukaUndangan() {
-  // Bungkus dalam try-catch untuk menangani segala error
-  try {
-    var cover = document.getElementById("cover");
-    var undangan = document.getElementById("undangan");
-    
-    if (!cover || !undangan) {
-      console.log("Elemen cover atau undangan tidak ditemukan");
-      return;
-    }
-    
-    // Sembunyikan cover dengan multiple techniques
-    if (cover.classList && typeof cover.classList.add === 'function') {
-      cover.classList.add("hidden");
-    }
-    
-    // Pastikan cover tersembunyi dengan style langsung
-    cover.style.display = "none";
-    cover.style.visibility = "hidden";
-    cover.style.opacity = "0";
-    
-    // Tampilkan undangan dengan multiple techniques
-    undangan.style.display = "block";
-    undangan.style.visibility = "visible";
-    undangan.style.opacity = "1";
-    
-    // Scroll ke elemen undangan dengan kompatibilitas
-    smoothScrollTo(undangan);
-    
-    // Simpan status bahwa undangan telah dibuka
-    setData("undanganDibuka", "true");
-    
-  } catch (error) {
-    console.log("Terjadi kesalahan:", error);
-    
-    // Fallback sederhana jika terjadi error
-    var coverFallback = document.getElementById("cover");
-    var undanganFallback = document.getElementById("undangan");
-    
-    if (coverFallback) {
-      coverFallback.style.display = "none";
-    }
-    if (undanganFallback) {
-      undanganFallback.style.display = "block";
-    }
-  }
-}
-
-// Fungsi yang dijalankan saat halaman dimuat
-function initUndangan() {
-  try {
-    // Periksa apakah undangan sudah dibuka sebelumnya
-    if (getData("undanganDibuka") === "true") {
-      var cover = document.getElementById("cover");
-      var undangan = document.getElementById("undangan");
-      
-      if (cover) {
-        // Gunakan berbagai metode untuk memastikan tersembunyi
-        if (cover.classList && typeof cover.classList.add === 'function') {
-          cover.classList.add("hidden");
-        }
-        cover.style.display = "none";
-        cover.style.visibility = "hidden";
-      }
-      
-      if (undangan) {
-        undangan.style.display = "block";
-        undangan.style.visibility = "visible";
-      }
-      
-      // Hapus status bahwa undangan telah dibuka
-      removeData("undanganDibuka");
-    }
-    
-    // Tambahkan event listener untuk tombol buka undangan
-    var tombolBuka = document.querySelectorAll("[data-buka-undangan], .tombol-buka, .buka-undangan");
-    for (var i = 0; i < tombolBuka.length; i++) {
-      if (tombolBuka[i].addEventListener) {
-        tombolBuka[i].addEventListener("click", bukaUndangan);
-      } else if (tombolBuka[i].attachEvent) {
-        // Untuk IE < 9
-        tombolBuka[i].attachEvent("onclick", bukaUndangan);
-      } else {
-        tombolBuka[i].onclick = bukaUndangan;
-      }
-    }
-  } catch (error) {
-    console.log("Error saat inisialisasi:", error);
-  }
-}
-
-// Gunakan berbagai metode untuk menjalankan kode saat halaman dimuat
-if (window.addEventListener) {
-  window.addEventListener("load", initUndangan);
-} else if (window.attachEvent) {
-  window.attachEvent("onload", initUndangan);
-} else {
-  window.onload = initUndangan;
+  // Tampilkan undangan
+  if (undangan) undangan.style.display = "block";
+  
+  // Scroll dengan timeout sederhana
+  setTimeout(function() {
+    // Beberapa metode scroll dasar
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    try { undangan.scrollIntoView(); } catch(e) {}
+  }, 100);
+  
+  // Simpan di cookie
+  document.cookie = "undanganDibuka=true; path=/";
+  return false;
 }
     </script>
-
     <!-- amplop -->
     <script>
       function openModal() {

@@ -80,18 +80,39 @@ body {
 }
 
 .button {
-  background-color: #ffffffcc;
+  background-color: #f0f0f0; /* Warna solid sebagai fallback */
+  background-color: rgba(255, 255, 255, 0.8); /* Untuk browser yang mendukung rgba */
   padding: 10px 10px;
+  -webkit-border-radius: 30px;
+  -moz-border-radius: 30px;
   border-radius: 30px;
-  font-size: 1rem;
-  color: #333;
+  font-size: 16px; /* Gunakan px daripada rem untuk kompatibilitas */
+  color: #333333;
   text-decoration: none;
-  transition: background 0.3s;
   cursor: pointer;
+  display: inline-block; /* Untuk browser lama */
+  text-align: center;
+  border: none;
+  outline: none;
+  
+  /* Tambahkan vendor prefixes untuk transitions */
+  -webkit-transition: all 0.3s ease;
+  -moz-transition: all 0.3s ease;
+  -o-transition: all 0.3s ease;
+  transition: all 0.3s ease;
 }
 
+/* Style hover dengan pendekatan tradisional */
 .button:hover {
-  background-color: #fff;
+  background-color: #ffffff;
+  text-decoration: none;
+  color: #000000;
+}
+
+/* Fallback tambahan untuk browser yang bahkan tidak mendukung :hover */
+.button-active {
+  background-color: #ffffff;
+  color: #000000;
 }
 
 .flower-container img {

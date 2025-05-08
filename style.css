@@ -597,3 +597,32 @@ body {
     font-size: 1/5rem;
   }
 }
+
+/* Tambahkan style khusus untuk browser bawaan OPPO */
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  .button {
+    background-color: #f0f0f0;
+    border: 1px solid #dddddd;
+  }
+}
+
+/* Pastikan tombol masih terlihat bagus di browser lama */
+.no-cssanimations .button,
+.no-csstransitions .button,
+.no-csstransforms .button {
+  background-color: #f0f0f0;
+  border: 1px solid #dddddd;
+}
+
+/* Style tambahan untuk memastikan keterbacaan */
+.button {
+  font-weight: bold;
+  min-width: 100px; /* Pastikan tombol tidak terlalu kecil */
+  -webkit-tap-highlight-color: rgba(0,0,0,0); /* Memperbaiki tampilan saat diketuk di perangkat mobile */
+}
+
+/* Dukungan untuk browser yang lebih lama */
+.oldbrowser .button {
+  padding: 8px; /* Sedikit lebih kecil untuk browser lama */
+  border: 2px solid #dddddd;
+}

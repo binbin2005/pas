@@ -27,6 +27,24 @@
     />
   </head>
   <body>
+    <body style="font-family: sans-serif; text-align: center; padding: 40px; background-color: #f9f9f9;">
+  <h2>📢 Perhatian</h2>
+  <p>Untuk pengalaman terbaik, silakan buka undangan ini di <strong>Google Chrome</strong>.</p>
+  <p>👇 Klik tombol di bawah ini lalu pilih <strong>Google Chrome</strong>:</p>
+  <a href="https://undanganmu.netlify.app" target="_blank" style="
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 24px;
+    background-color: #1e88e5;
+    color: white;
+    font-size: 16px;
+    border-radius: 8px;
+    text-decoration: none;
+  ">
+    🎉 Buka Undangan di Chrome
+  </a>
+</body>
+
     <div class="cover" id="cover">
       <img src="./img/cover.jpg" alt="Foto Undangan" />
       <div class="text-content">
@@ -246,49 +264,28 @@
 
     <!-- scroll -->
     <script>
-  function bukaUndangan() {
-    var cover = document.getElementById("cover");
-    var undangan = document.getElementById("undangan");
+      function bukaUndangan() {
+        const cover = document.getElementById("cover");
+        const undangan = document.getElementById("undangan");
 
-    if (cover && undangan) {
-      // Sembunyikan cover
-      cover.className += " hidden"; // tambah class dengan cara manual agar aman di browser lama
+        // Sembunyikan cover
+        cover.classList.add("hidden");
 
-      // Tampilkan undangan
-      undangan.style.display = "block";
+        // Tampilkan undangan
+        undangan.style.display = "block";
+        undangan.scrollIntoView({ behavior: "smooth" });
 
-      // Scroll ke undangan (tanpa smooth agar lebih kompatibel)
-      undangan.scrollIntoView();
-
-      // Simpan status
-      try {
         sessionStorage.setItem("undanganDibuka", "true");
-      } catch (e) {
-        // Jika sessionStorage tidak didukung
-        console.log("sessionStorage tidak tersedia");
       }
-    }
-  }
 
-  window.onload = function () {
-    try {
-      if (sessionStorage.getItem("undanganDibuka")) {
-        var cover = document.getElementById("cover");
-        var undangan = document.getElementById("undangan");
-
-        if (cover && undangan) {
-          cover.className += " hidden";
-          undangan.style.display = "block";
+      window.onload = function () {
+        if (sessionStorage.getItem("undanganDibuka")) {
+          document.getElementById("cover").classList.add("hidden");
+          document.getElementById("undangan").style.display = "block";
+          sessionStorage.removeItem("undanganDibuka");
         }
-
-        sessionStorage.removeItem("undanganDibuka");
-      }
-    } catch (e) {
-      console.log("sessionStorage tidak tersedia");
-    }
-  };
-</script>
-
+      };
+    </script>
 
     <!-- amplop -->
     <script>

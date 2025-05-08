@@ -245,144 +245,252 @@
     <script src="https://cdn.jsdelivr.net/npm/bs5-lightbox@1.8.3/dist/index.bundle.min.js"></script>
 
     <!-- scroll -->
-     <script> 
-      // Fungsi untuk mendeteksi browser dan versinya
-function detectBrowser() {
-  const userAgent = navigator.userAgent;
-  let browserName = "Unknown";
-  let browserVersion = "Unknown";
+    <script>
+      /**
+ * Script Undangan Digital yang Kompatibel dengan Semua Browser
+ * Termasuk browser bawaan OPPO yang memiliki keterbatasan
+ */
 
-  // Deteksi browser
-  if (userAgent.match(/chrome|chromium|crios/i)) {
-    browserName = "Chrome";
-  } else if (userAgent.match(/firefox|fxios/i)) {
-    browserName = "Firefox";
-  } else if (userAgent.match(/safari/i) && !userAgent.match(/chrome|chromium|crios/i)) {
-    browserName = "Safari";
-  } else if (userAgent.match(/edg/i)) {
-    browserName = "Edge";
-  } else if (userAgent.match(/opr\//i)) {
-    browserName = "Opera";
-  } else if (userAgent.match(/msie|trident/i)) {
-    browserName = "Internet Explorer";
-  }
+// Polyfill untuk Element.classList (untuk browser lama)
+if (!("classList" in document.documentElement)) {
+  Object.defineProperty(HTMLElement.prototype, 'classList', {
+    get: function() {
+      var self = this;
+      function update(fn) {
+        return function(value) {
+          var classes = self.className.split(/\s+/);
+          var index = classes.indexOf(value);
+          fn(classes, index, value);
+          self.className = classes.join(" ");
+        };
+      }
 
-  // Coba dapatkan versi browser (cara sederhana)
-  const versionMatch = userAgent.match(/(chrome|firefox|safari|opr|edg|msie|rv)[\s\/: ](\d+(\.\d+)?)/i);
-  if (versionMatch && versionMatch[2]) {
-    browserVersion = versionMatch[2];
-  }
-
-  return { name: browserName, version: browserVersion };
+      return {
+        add: update(function(classes, index, value) {
+          if (index === -1) {
+            classes.push(value);
+          }
+        }),
+        remove: update(function(classes, index) {
+          if (index !== -1) {
+            classes.splice(index, 1);
+          }
+        }),
+        toggle: update(function(classes, index, value) {
+          if (index === -1) {
+            classes.push(value);
+          } else {
+            classes.splice(index, 1);
+          }
+        }),
+        contains: function(value) {
+          return self.className.split(/\s+/).indexOf(value) !== -1;
+        }
+      };
+    }
+  });
 }
 
-// Fungsi untuk membuka undangan dengan fallback
-function bukaUndangan() {
+// Fungsi untuk scroll dengan smooth behavior untuk browser yang tidak mendukung
+function smoothScrollTo(element) {
+  if (!element) return;
+  
+  // Periksa apakah smooth scrolling didukung
+  var supportsScrollBehavior = 'scrollBehavior' in document.documentElement.style;
+  
+  if (supportsScrollBehavior) {
+    element.scrollIntoView({ behavior: "smooth" });
+  } else {
+    // Implementasi manual untuk smooth scrolling
+    var startY = window.pageYOffset;
+    var targetY = element.getBoundingClientRect().top + startY;
+    var duration = 500; // ms
+    var startTime = null;
+    
+    function scrollStep(timestamp) {
+      if (!startTime) startTime = timestamp;
+      var progress = timestamp - startTime;
+      var percentage = Math.min(progress / duration, 1);
+      
+      // Fungsi easing untuk animasi lebih halus
+      var easeInOutQuad = function(t) {
+        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      };
+      
+      window.scrollTo(0, startY + (targetY - startY) * easeInOutQuad(percentage));
+      
+      if (progress < duration) {
+        window.requestAnimationFrame(scrollStep);
+      }
+    }
+    
+    // Fallback untuk requestAnimationFrame jika tidak didukung
+    var requestAnimFrame = window.requestAnimationFrame ||
+      window.webkitRequestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      function(callback) { window.setTimeout(callback, 1000/60); };
+    
+    requestAnimFrame(scrollStep);
+  }
+}
+
+// Fungsi untuk mengecek dukungan Storage API
+function storageAvailable(type) {
   try {
-    const cover = document.getElementById("cover");
-    const undangan = document.getElementById("undangan");
+    var storage = window[type],
+        x = '__storage_test__';
+    storage.setItem(x, x);
+    storage.removeItem(x);
+    return true;
+  }
+  catch(e) {
+    return false;
+  }
+}
+
+// Fungsi untuk menyimpan data jika sessionStorage tidak tersedia
+function setData(key, value) {
+  if (storageAvailable('sessionStorage')) {
+    sessionStorage.setItem(key, value);
+  } else {
+    // Fallback menggunakan cookies
+    document.cookie = key + "=" + value + "; path=/";
+  }
+}
+
+// Fungsi untuk mengambil data
+function getData(key) {
+  if (storageAvailable('sessionStorage')) {
+    return sessionStorage.getItem(key);
+  } else {
+    // Fallback menggunakan cookies
+    var name = key + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return null;
+  }
+}
+
+// Fungsi untuk menghapus data
+function removeData(key) {
+  if (storageAvailable('sessionStorage')) {
+    sessionStorage.removeItem(key);
+  } else {
+    // Hapus cookie dengan mengatur expired date
+    document.cookie = key + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  }
+}
+
+// Fungsi utama untuk membuka undangan
+function bukaUndangan() {
+  // Bungkus dalam try-catch untuk menangani segala error
+  try {
+    var cover = document.getElementById("cover");
+    var undangan = document.getElementById("undangan");
     
     if (!cover || !undangan) {
-      console.error("Element cover atau undangan tidak ditemukan");
+      console.log("Elemen cover atau undangan tidak ditemukan");
       return;
     }
-
-    // Sembunyikan cover dengan berbagai metode untuk kompatibilitas
-    cover.classList.add("hidden");
+    
+    // Sembunyikan cover dengan multiple techniques
+    if (cover.classList && typeof cover.classList.add === 'function') {
+      cover.classList.add("hidden");
+    }
+    
+    // Pastikan cover tersembunyi dengan style langsung
     cover.style.display = "none";
     cover.style.visibility = "hidden";
-
-    // Tampilkan undangan dengan berbagai metode
+    cover.style.opacity = "0";
+    
+    // Tampilkan undangan dengan multiple techniques
     undangan.style.display = "block";
     undangan.style.visibility = "visible";
     undangan.style.opacity = "1";
     
-    // Scroll ke undangan dengan fallback untuk browser yang tidak mendukung scrollIntoView
-    if (undangan.scrollIntoView) {
-      undangan.scrollIntoView({ behavior: "smooth" });
-    } else {
-      // Fallback untuk browser lama
-      const yOffset = undangan.getBoundingClientRect().top + window.pageYOffset;
-      window.scrollTo({
-        top: yOffset,
-        behavior: "smooth"
-      });
-    }
-
-    // Simpan status di berbagai storage untuk redundansi
-    try {
-      sessionStorage.setItem("undanganDibuka", "true");
-    } catch (e) {
-      // Fallback jika sessionStorage tidak tersedia
-      document.cookie = "undanganDibuka=true; path=/";
-    }
+    // Scroll ke elemen undangan dengan kompatibilitas
+    smoothScrollTo(undangan);
     
-    // Broadcast event bahwa undangan telah dibuka
-    const event = new Event("undanganDibuka");
-    document.dispatchEvent(event);
+    // Simpan status bahwa undangan telah dibuka
+    setData("undanganDibuka", "true");
+    
   } catch (error) {
-    console.error("Error saat membuka undangan:", error);
-    // Fallback jika terjadi error
-    const coverElement = document.getElementById("cover");
-    const undanganElement = document.getElementById("undangan");
+    console.log("Terjadi kesalahan:", error);
     
-    if (coverElement) coverElement.style.display = "none";
-    if (undanganElement) undanganElement.style.display = "block";
+    // Fallback sederhana jika terjadi error
+    var coverFallback = document.getElementById("cover");
+    var undanganFallback = document.getElementById("undangan");
+    
+    if (coverFallback) {
+      coverFallback.style.display = "none";
+    }
+    if (undanganFallback) {
+      undanganFallback.style.display = "block";
+    }
   }
 }
 
-// Handler ketika halaman dimuat
-window.onload = function() {
+// Fungsi yang dijalankan saat halaman dimuat
+function initUndangan() {
   try {
-    const browser = detectBrowser();
-    console.log("Browser terdeteksi:", browser.name, browser.version);
-    
-    let isUndanganDibuka = false;
-    
-    // Cek di berbagai storage
-    if (sessionStorage && sessionStorage.getItem("undanganDibuka")) {
-      isUndanganDibuka = true;
-      sessionStorage.removeItem("undanganDibuka");
-    } else if (document.cookie.indexOf("undanganDibuka=true") !== -1) {
-      isUndanganDibuka = true;
-      // Hapus cookie
-      document.cookie = "undanganDibuka=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    }
-    
-    if (isUndanganDibuka) {
-      const cover = document.getElementById("cover");
-      const undangan = document.getElementById("undangan");
+    // Periksa apakah undangan sudah dibuka sebelumnya
+    if (getData("undanganDibuka") === "true") {
+      var cover = document.getElementById("cover");
+      var undangan = document.getElementById("undangan");
       
       if (cover) {
-        cover.classList.add("hidden");
+        // Gunakan berbagai metode untuk memastikan tersembunyi
+        if (cover.classList && typeof cover.classList.add === 'function') {
+          cover.classList.add("hidden");
+        }
         cover.style.display = "none";
+        cover.style.visibility = "hidden";
       }
       
       if (undangan) {
         undangan.style.display = "block";
         undangan.style.visibility = "visible";
       }
+      
+      // Hapus status bahwa undangan telah dibuka
+      removeData("undanganDibuka");
     }
     
     // Tambahkan event listener untuk tombol buka undangan
-    const tombolUndangan = document.querySelector(".tombol-buka");
-    if (tombolUndangan) {
-      // Gunakan beberapa metode event untuk kompatibilitas maksimum
-      if (tombolUndangan.addEventListener) {
-        tombolUndangan.addEventListener("click", bukaUndangan, false);
-      } else if (tombolUndangan.attachEvent) {
+    var tombolBuka = document.querySelectorAll("[data-buka-undangan], .tombol-buka, .buka-undangan");
+    for (var i = 0; i < tombolBuka.length; i++) {
+      if (tombolBuka[i].addEventListener) {
+        tombolBuka[i].addEventListener("click", bukaUndangan);
+      } else if (tombolBuka[i].attachEvent) {
         // Untuk IE < 9
-        tombolUndangan.attachEvent("onclick", bukaUndangan);
+        tombolBuka[i].attachEvent("onclick", bukaUndangan);
       } else {
-        tombolUndangan.onclick = bukaUndangan;
+        tombolBuka[i].onclick = bukaUndangan;
       }
     }
   } catch (error) {
-    console.error("Error saat inisialisasi:", error);
+    console.log("Error saat inisialisasi:", error);
   }
 }
-     
-     </script>
+
+// Gunakan berbagai metode untuk menjalankan kode saat halaman dimuat
+if (window.addEventListener) {
+  window.addEventListener("load", initUndangan);
+} else if (window.attachEvent) {
+  window.attachEvent("onload", initUndangan);
+} else {
+  window.onload = initUndangan;
+}
+    </script>
 
     <!-- amplop -->
     <script>

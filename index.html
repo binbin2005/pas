@@ -246,47 +246,27 @@
 
     <!-- scroll -->
     <script>
-      // Fungsi untuk melakukan scroll smooth ke elemen dengan id "undangan"
-function bukaUndangan() {
-  const undanganElement = document.getElementById('undangan');
-  
-  if (undanganElement) {
-    // Cek dukungan untuk scrollBehavior
-    if ('scrollBehavior' in document.documentElement.style) {
-      // Browser modern dengan dukungan smooth scroll
-      undanganElement.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    } else {
-      // Fallback untuk browser lama
-      const elementPosition = undanganElement.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset;
-      
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-  }
-  
-  // Mencegah default action dari link
-  return false;
-}
+      function bukaUndangan() {
+        const cover = document.getElementById("cover");
+        const undangan = document.getElementById("undangan");
 
-// Tambahkan juga event listener secara otomatis jika link tidak menggunakan onclick langsung
-document.addEventListener('DOMContentLoaded', function() {
-  const bukaUndanganLinks = document.querySelectorAll('.button[href="#"]');
-  
-  bukaUndanganLinks.forEach(function(link) {
-    if (!link.hasAttribute('onclick')) {
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        bukaUndangan();
-      });
-    }
-  });
-});
+        // Sembunyikan cover
+        cover.classList.add("hidden");
+
+        // Tampilkan undangan
+        undangan.style.display = "block";
+        undangan.scrollIntoView({ behavior: "smooth" });
+
+        sessionStorage.setItem("undanganDibuka", "true");
+      }
+
+      window.onload = function () {
+        if (sessionStorage.getItem("undanganDibuka")) {
+          document.getElementById("cover").classList.add("hidden");
+          document.getElementById("undangan").style.display = "block";
+          sessionStorage.removeItem("undanganDibuka");
+        }
+      };
     </script>
     <!-- amplop -->
     <script>

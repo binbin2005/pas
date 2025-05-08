@@ -626,3 +626,22 @@ body {
   padding: 8px; /* Sedikit lebih kecil untuk browser lama */
   border: 2px solid #dddddd;
 }
+
+/* Memastikan kompatibilitas dengan browser lama */
+        @supports (-webkit-overflow-scrolling: touch) {
+            /* Styling khusus untuk iOS */
+            .button {
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
+        }
+
+        /* Mengatasi masalah render di browser Samsung/Android */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                height: 100%;
+                position: relative;
+            }
+        }
+    

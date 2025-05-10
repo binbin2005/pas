@@ -27,6 +27,25 @@
     />
   </head>
   <body>
+    <!-- Modal untuk Redirect -->
+    <div id="browser-modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Browser Tidak Didukung</h3>
+            <p>Undangan ini akan terlihat dan berfungsi lebih baik di Google Chrome.</p>
+            <div class="browser-icon">
+                <i class="bi bi-browser-chrome"></i>
+            </div>
+            <p>Klik tombol di bawah untuk membuka undangan di Chrome.</p>
+            <a href="#" id="open-chrome" class="button">
+                <i class="bi bi-box-arrow-up-right"></i> Buka di Chrome
+            </a>
+            <p>Atau lanjutkan dengan browser ini (beberapa fitur mungkin tidak berfungsi).</p>
+            <a href="#" id="continue-anyway" class="button" style="background-color: #95a5a6;">
+                Lanjutkan
+            </a>
+        </div>
+    </div>
+
     <div class="cover" id="cover">
       <img src="./img/cover.jpg" alt="Foto Undangan" />
       <div class="text-content">
@@ -244,31 +263,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bs5-lightbox@1.8.3/dist/index.bundle.min.js"></script>
 
     <!-- scroll -->
-<script>
-  function bukaUndangan() {
-    var cover = document.getElementById("cover");
-    var undangan = document.getElementById("undangan");
-
-    if (cover && undangan) {
-      cover.style.display = "none";
-      undangan.style.display = "block";
-      undangan.scrollIntoView();
-    }
-  }
-
-  window.onload = function () {
-    // Hilangkan sessionStorage agar lebih kompatibel
-    var cover = document.getElementById("cover");
-    var undangan = document.getElementById("undangan");
-
-    if (cover && undangan && window.name === "dibuka") {
-      cover.style.display = "none";
-      undangan.style.display = "block";
-    }
-  };
-</script>
-
-
     
     <!-- amplop -->
     <script>
@@ -369,17 +363,163 @@
       };
     </script>
 
-    <div id="warning" style="display:none; background: yellow; padding: 10px;">
-  ⚠️ Browser ini mungkin tidak mendukung fitur undangan. Gunakan Google Chrome untuk hasil terbaik.
-</div>
-
-<script>
-  // Deteksi WebView atau browser kuno
-  if (navigator.userAgent.includes("OPR/") || navigator.userAgent.includes("HeyTapBrowser")) {
-    document.getElementById("warning").style.display = "block";
-  }
-</script>
-
+    <script>
+        // Deteksi Browser
+        function detectBrowser() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            
+            // Cek apakah browser adalah Chrome
+            const isChrome = /chrome/.test(userAgent) && !/edge|edg|opr|brave/.test(userAgent);
+            
+            // Cek apakah perangkat adalah mobile
+            const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(userAgent);
+            
+            return {
+                isChrome: isChrome,
+                isMobile: isMobile
+            };
+        }
+        
+        // Fungsi untuk mengarahkan ke Chrome
+        function redirectToChrome() {
+            const currentUrl = window.location.href;
+            
+            // Set URL untuk membuka di Chrome
+            let chromeUrl;
+            
+            // Untuk Android
+            if (/android/i.test(navigator.userAgent)) {
+                chromeUrl = 'intent://' + currentUrl.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end';
+            }
+            // Untuk iOS
+            else if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+                chromeUrl = 'googlechrome://navigate?url=' + encodeURIComponent(currentUrl);
+            }
+            // Fallback
+            else {
+                chromeUrl = 'https://www.google.com/chrome/';
+            }
+            
+            window.location.href = chromeUrl;
+        }
+        
+        // Fungsi untuk membuka undangan
+        function bukaUndangan() {
+            const cover = document.getElementById("cover");
+            const undangan = document.getElementById("undangan");
+            
+            // Sembunyikan cover
+            cover.classList.add("hidden");
+            
+            // Tampilkan undangan
+            undangan.style.display = "block";
+            
+            // Scroll ke undangan dengan smooth scroll
+            try {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+            } catch (e) {
+                window.scrollTo(0, 0);
+            }
+            
+            // Simpan status ke sessionStorage
+            try {
+                sessionStorage.setItem("undanganDibuka", "true");
+            } catch (e) {
+                document.cookie = "undanganDibuka=true; path=/";
+            }
+        }
+        
+        // Fungsi untuk cek apakah undangan sudah dibuka sebelumnya
+        function checkUndanganStatus() {
+            let dibuka = false;
+            
+            // Cek dari sessionStorage
+            try {
+                dibuka = sessionStorage.getItem("undanganDibuka") === "true";
+            } catch (e) {
+                // Fallback ke cookie
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.indexOf("undanganDibuka=true") === 0) {
+                        dibuka = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Jika sebelumnya sudah dibuka, tampilkan undangan langsung
+            if (dibuka) {
+                const cover = document.getElementById("cover");
+                const undangan = document.getElementById("undangan");
+                
+                cover.classList.add("hidden");
+                undangan.style.display = "block";
+            }
+        }
+        
+        // Saat dokumen selesai dimuat
+        document.addEventListener("DOMContentLoaded", function() {
+            const browserInfo = detectBrowser();
+            const browserModal = document.getElementById("browser-modal");
+            const openChromeBtn = document.getElementById("open-chrome");
+            const continueBtn = document.getElementById("continue-anyway");
+            const bukaUndanganBtn = document.getElementById("bukaUndanganBtn");
+            
+            // Cek apakah sudah pernah dibuka
+            checkUndanganStatus();
+            
+            // Jika bukan Chrome dan sedang di mobile, tampilkan modal
+            if (!browserInfo.isChrome && browserInfo.isMobile) {
+                browserModal.classList.add("show");
+                
+                // Tombol untuk redirect ke Chrome
+                openChromeBtn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    redirectToChrome();
+                });
+                
+                // Tombol untuk melanjutkan dengan browser saat ini
+                continueBtn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    browserModal.classList.remove("show");
+                    
+                    // Simpan preferensi di cookie
+                    try {
+                        localStorage.setItem("browserWarningDismissed", "true");
+                    } catch (e) {
+                        document.cookie = "browserWarningDismissed=true; max-age=604800; path=/";
+                    }
+                });
+            }
+            
+            // Tombol buka undangan
+            if (bukaUndanganBtn) {
+                bukaUndanganBtn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    bukaUndangan();
+                });
+            }
+        });
+        
+        // Fallback untuk browser yang tidak mendukung DOMContentLoaded
+        if (document.readyState === "complete" || document.readyState === "interactive") {
+            setTimeout(function() {
+                // Cek apakah event listener sudah ditambahkan
+                const bukaUndanganBtn = document.getElementById("bukaUndanganBtn");
+                if (bukaUndanganBtn && !bukaUndanganBtn.hasAttribute("listener")) {
+                    bukaUndanganBtn.setAttribute("listener", "true");
+                    bukaUndanganBtn.addEventListener("click", bukaUndangan);
+                }
+                
+                // Cek status undangan
+                checkUndanganStatus();
+            }, 1);
+        }
+    </script>
 
   </body>
 </html>

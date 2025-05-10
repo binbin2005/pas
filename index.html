@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="./style.css" />
 
     <!-- link normalize buat tidak berantakan-->
-    <link
+<!--     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"
     />
-
+ -->
     <!-- font google -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -246,28 +246,115 @@
 
     <!-- scroll -->
     <script>
-      function bukaUndangan() {
-        const cover = document.getElementById("cover");
-        const undangan = document.getElementById("undangan");
-
-        // Sembunyikan cover
+  // Fungsi untuk membuka undangan
+  function bukaUndangan() {
+    try {
+      const cover = document.getElementById("cover");
+      const undangan = document.getElementById("undangan");
+      
+      // Sembunyikan cover
+      if (cover) {
         cover.classList.add("hidden");
-
-        // Tampilkan undangan
-        undangan.style.display = "block";
-        undangan.scrollIntoView({ behavior: "smooth" });
-
-        sessionStorage.setItem("undanganDibuka", "true");
+        // Fallback jika classList tidak didukung
+        cover.style.display = "none";
       }
-
-      window.onload = function () {
-        if (sessionStorage.getItem("undanganDibuka")) {
-          document.getElementById("cover").classList.add("hidden");
-          document.getElementById("undangan").style.display = "block";
-          sessionStorage.removeItem("undanganDibuka");
+      
+      // Tampilkan undangan
+      if (undangan) {
+        undangan.style.display = "block";
+        
+        // Coba scroll ke undangan dengan fallback
+        try {
+          undangan.scrollIntoView({ behavior: "smooth" });
+        } catch (e) {
+          // Fallback untuk browser yang tidak mendukung scrollIntoView smooth
+          window.scrollTo(0, undangan.offsetTop);
         }
-      };
-    </script>
+      }
+      
+      // Coba gunakan sessionStorage
+      try {
+        sessionStorage.setItem("undanganDibuka", "true");
+      } catch (e) {
+        // Fallback jika sessionStorage tidak tersedia
+        document.cookie = "undanganDibuka=true; path=/";
+      }
+    } catch (e) {
+      // Fallback manual jika terjadi error
+      document.getElementById("cover").style.display = "none";
+      document.getElementById("undangan").style.display = "block";
+    }
+  }
+  
+  // Fungsi untuk cek apakah undangan sudah dibuka sebelumnya
+  function checkUndanganStatus() {
+    let dibuka = false;
+    
+    // Coba cek dari sessionStorage
+    try {
+      dibuka = sessionStorage.getItem("undanganDibuka") === "true";
+      if (dibuka) {
+        sessionStorage.removeItem("undanganDibuka");
+      }
+    } catch (e) {
+      // Fallback ke cookie jika sessionStorage tidak tersedia
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.indexOf("undanganDibuka=true") === 0) {
+          dibuka = true;
+          // Hapus cookie
+          document.cookie = "undanganDibuka=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          break;
+        }
+      }
+    }
+    
+    // Jika sebelumnya sudah dibuka, tampilkan undangan langsung
+    if (dibuka) {
+      const cover = document.getElementById("cover");
+      const undangan = document.getElementById("undangan");
+      
+      if (cover) {
+        cover.classList.add("hidden");
+        cover.style.display = "none";
+      }
+      
+      if (undangan) {
+        undangan.style.display = "block";
+      }
+    }
+  }
+  
+  // Setup event listeners dengan multiple approach
+  document.addEventListener("DOMContentLoaded", function() {
+    // Buka undangan dengan click event
+    const btn = document.getElementById("bukaUndanganBtn");
+    if (btn) {
+      btn.addEventListener("click", bukaUndangan);
+    }
+    
+    // Cek status undangan
+    checkUndanganStatus();
+  });
+  
+  // Fallback untuk browser lama tanpa DOMContentLoaded
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    setTimeout(function() {
+      const btn = document.getElementById("bukaUndanganBtn");
+      if (btn && !btn.hasAttribute("listener")) {
+        btn.setAttribute("listener", "true");
+        btn.addEventListener("click", bukaUndangan);
+      }
+      checkUndanganStatus();
+    }, 1);
+  } else {
+    window.onload = function() {
+      checkUndanganStatus();
+    };
+  }
+</script>
+    
     <!-- amplop -->
     <script>
       function openModal() {

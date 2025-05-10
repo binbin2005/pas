@@ -369,5 +369,17 @@
       };
     </script>
 
+    <div id="warning" style="display:none; background: yellow; padding: 10px;">
+  ⚠️ Browser ini mungkin tidak mendukung fitur undangan. Gunakan Google Chrome untuk hasil terbaik.
+</div>
+
+<script>
+  // Deteksi WebView atau browser kuno
+  if (navigator.userAgent.includes("OPR/") || navigator.userAgent.includes("HeyTapBrowser")) {
+    document.getElementById("warning").style.display = "block";
+  }
+</script>
+
+
   </body>
 </html>

@@ -41,9 +41,8 @@
         <p>Kepada Bapak/Ibu/Saudara/i <br /><span id="nama-tamu">Tamu</span></p>
         <br />
          <div>
-          <a href="#" class="button" onclick="bukaUndangan()">
-            <i class="bi bi-envelope"></i> Buka Undangan
-          </a>
+          <a href="#" class="button"  onclick="window.name='dibuka'; bukaUndangan();">Buka Undangan</a>
+
         </div>
     </div>
     </div>
@@ -247,28 +246,28 @@
     <!-- scroll -->
 <script>
   function bukaUndangan() {
-  const cover = document.getElementById("cover");
-  const undangan = document.getElementById("undangan");
+    var cover = document.getElementById("cover");
+    var undangan = document.getElementById("undangan");
 
-  if (cover && undangan) {
-    // Sembunyikan cover
-    cover.classList.add("hidden");
-
-    // Tampilkan undangan
-    undangan.style.display = "block";
-
-    // Scroll dengan fallback untuk browser lama
-    try {
-      undangan.scrollIntoView({ behavior: "smooth" });
-    } catch (e) {
+    if (cover && undangan) {
+      cover.style.display = "none";
+      undangan.style.display = "block";
       undangan.scrollIntoView();
     }
-
-    // Simpan status di sessionStorage
-    sessionStorage.setItem("undanganDibuka", "true");
   }
-}
+
+  window.onload = function () {
+    // Hilangkan sessionStorage agar lebih kompatibel
+    var cover = document.getElementById("cover");
+    var undangan = document.getElementById("undangan");
+
+    if (cover && undangan && window.name === "dibuka") {
+      cover.style.display = "none";
+      undangan.style.display = "block";
+    }
+  };
 </script>
+
 
     
     <!-- amplop -->
